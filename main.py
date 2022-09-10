@@ -128,7 +128,25 @@ class newDF(Read_file):
         except TypeError as e:
             logger.error(f'Ocurrio un error: {e}')
 
-    def filter_data_by_quarters(self):  
+    def filter_data_by_quarters(self):
+        """
+        Filter data by quarters-
+
+        - Description:
+            - From the dates obtained from the get_the_current_quarter function, it will filter the data that corresponds to the dates.
+        
+        - Parameters:
+            - Nothing.
+
+        - Return:
+            - Returns a DF with the data of the quarter.
+
+           - +------------------+
+           - |Cod_linea|m1|m2|m3|
+           - |R1       |01|01|01|
+           - +------------------+
+        """
+
         self.get_the_current_quarter()
         try:
             self.df_quaters = self.read_sheet_file[[
@@ -139,6 +157,20 @@ class newDF(Read_file):
             print("no tiene las columnas")
 
     def create_dataframe(self):
+
+        """
+        Create DataFrame
+
+        - Description:
+            - It is responsible for creating the final DataFrame for export to a csv format.
+        
+        - Parameters: 
+            - Nothing.
+        
+        - Return: 
+            - Returns a final DataFrame, with the columns | YEAR | MONTH | UNIT | R | VALUE | START OF THE MONTH |
+        
+        """
         self.filter_data_by_quarters()
         self.columnR = self.df_quaters.columns[0]
         self.column_list = [
