@@ -1,19 +1,19 @@
-#PANDAS
+# PANDAS
 import pandas as pd
 from pandas import ExcelFile
 
-#UTILIDADES
+# UTILIDADES
 import datetime
 import re
 
-#LOGGER 
-##FILE 
+# LOGGER
+# FILE
 import logging
 
 formato = ' [%(asctime)s], %(levelname)s, %(message)s, %(filename)s:%(lineno)d'
-logging.basicConfig( filename='loggers.log', level=logging.INFO, format=formato)
+logging.basicConfig(filename='loggers.log', level=logging.INFO, format=formato)
 
-##CONSOLE 
+# CONSOLE
 console = logging.StreamHandler()
 console.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
@@ -23,9 +23,8 @@ logging.getLogger('').addHandler(console)
 logger = logging.getLogger(__name__)
 
 
-
 class Read_file:
-    def __init__(self, url:str):
+    def __init__(self, url: str):
         self.url = url
         self.list_sheet_name = self.__get_sheet_from_file('Ref_Hoja_Excel')
         self.unidad = self.__get_sheet_from_file('Nemo_Grupo')
@@ -50,8 +49,7 @@ class newDF(Read_file):
         self.read_excel_file()
         self.columns_df = columns_df
         logger.info(f"Se crearon las columnas correctamente: {columns_df}")
-    
-    
+
     def read_excel_file(self):
         """
         Read File
@@ -72,26 +70,51 @@ class newDF(Read_file):
             logger.info(f'Leyendo la Hoja: {self.sheetname}')
             self.read_sheet_file = pd.read_excel(
                 self.url, na_values="Missing", sheet_name=self.sheetname[0], header=4)
-            logger.info(f'Se leyo correctamente la Hoja: {self.sheetname}')            
+            logger.info(f'Se leyo correctamente la Hoja: {self.sheetname}')
             return self.read_sheet_file
         except TypeError as e:
             logger.error(f'Ocurrio un error: {e}')
 
     def __get_data_from_url(self):
+        """
+        Get Data from url
+
+        - Description:
+            - Extract the date of the quarter from the path.
+
+        - Parameters:
+            - Nothing.
+
+        - Return:
+            - returns two variables, year and month that specify the current quarter.
+        """
         try:
             logger.info(f'Obteniendo informacion del path: {self.url}')
             logger.info(f'Obteniendo la fecha del path...')
             self.date_in_url = re.findall('[0-9]{6}', self.url)
             self.months = self.date_in_url[0][4:6]
             self.years = self.date_in_url[0][:4]
-            logger.info('Se obtuvieron exitosamente las fechas.') 
+            logger.info('Se obtuvieron exitosamente las fechas.')
         except TypeError as e:
             logger.error(f'Ocurrio un error: {e}')
 
     def get_the_current_quarter(self):
+        """
+        Get Current Quarter.
+
+        - Description:
+            - From the dates obtained in the get_data_from_url function, it will determine the months of the current quarter as long as they are less than or equal to the date of the file.
+
+        - Parameters:
+            - Nothing.
+
+        - Return:
+            - returns the months of the quarter. avoiding dates greater than the month of the file and outside the quarter.
+        """
+
         logger.info('Intentando obtener el trimestre')
         self.__get_data_from_url()
-        
+
         try:
             self.date_file = datetime.datetime(
                 int(self.years), int(self.months), 1, 0, 0)
@@ -99,13 +122,13 @@ class newDF(Read_file):
                 self.months) - (int(self.months) - 1) % 3, 1, 0, 0)
             self.dates = pd.date_range(
                 self.date, periods=3, freq='MS', normalize=False)
-            self.dates = [date for date in self.dates if date <= self.date_file]
+            self.dates = [
+                date for date in self.dates if date <= self.date_file]
             return self.dates
         except TypeError as e:
             logger.error(f'Ocurrio un error: {e}')
 
-
-    def filter_data_by_quarters(self):
+    def filter_data_by_quarters(self):  
         self.get_the_current_quarter()
         try:
             self.df_quaters = self.read_sheet_file[[
@@ -135,7 +158,7 @@ class newDF(Read_file):
 
 if __name__ == "__main__":
     path_file = './ReporteN2-ACHI-Real-202103.xlsx'
-    logger.info(f'Leyendo el Archivo: {path_file[2:]}' )
+    logger.info(f'Leyendo el Archivo: {path_file[2:]}')
     exc_file = Read_file(path_file)
     logger.info('Obteniendo la lista de nombre de hojas')
     num_of_sheet = exc_file.get_list_sheet_name()
@@ -146,5 +169,5 @@ if __name__ == "__main__":
     for sheet in range(len(num_of_sheet)):
         logger.info(f'Sheet {sheet+1}/{len(num_of_sheet)}')
         df = newDF(path_file,
-                    num_of_sheet[sheet], columns)
+                   num_of_sheet[sheet], columns)
         print(df.create_dataframe())
